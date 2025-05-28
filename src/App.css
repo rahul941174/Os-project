@@ -1,0 +1,59 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+body{
+  overflow-x: hidden;
+}
+*{
+  padding: 0px;
+  margin: 0px;
+}
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin: 10px 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+input[type="number"] {
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-left: 10px;
+}
+
+.home-page button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background-color: #0077cc;
+  color: #fff;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.home-page button:hover {
+  background-color: #005fa3;
+}
+
+h1 {
+  font-size: 36px;
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-size: 24px;
+  margin-top: 50px;
+}
+
+body{
+  overflow-x: hidden;
+}

@@ -1,0 +1,104 @@
+.scheduler-container {
+  min-height: 100vh;
+  padding: 2rem;
+  color: white;
+  background-image: url("../Images/petersonpic.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.input-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.input-section input {
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.input-section button {
+  background: linear-gradient(45deg, #6a11cb, #2575fc);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.input-section button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #00000040;
+}
+
+.simulate-btn {
+  background-color: #ff4b2b;
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.2s ease;
+}
+
+.simulate-btn:hover {
+  background-color: #ff3c1f;
+  transform: scale(1.05);
+}
+
+.process-table table,
+.results-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin-top: 20px;
+}
+
+.process-table th,
+.process-table td,
+.results-table th,
+.results-table td {
+  padding: 12px;
+  border: 1px solid white;
+  text-align: center;
+  color: white;
+}
+
+.timeline {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.bar {
+  position: relative;
+  background-color: #4e9bff;
+  margin: 5px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-align: center;
+  color: black;
+  font-weight: bold;
+}
+
+.bar .time {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: white;
+  padding: 0 5px;
+}
