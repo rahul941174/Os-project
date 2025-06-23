@@ -1,118 +1,108 @@
-//importing necessary modules and css file
+// Importing necessary modules and CSS
 import React, { useState } from "react";
 import "../Css/OptPR.css";
 import NavBar from "../components/NavBar.jsx";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
-//Defining the functional Component
 function OptPR() {
-  //intializing state variables using useState hooks
-  const [pageRefrences, SetpageRefrences] = useState([]);
-  const [Frames, SetFrames] = useState(0);
-  const [componetMemoryState, SetComponentMemoryState] = useState([]);
+  const [pageReferences, setPageReferences] = useState([]);
+  const [frames, setFrames] = useState(0);
   const [pageFaults, setPageFaults] = useState(0);
-  const [color, setColor] = useState(null);
   const [tableData, setTableData] = useState([]);
   const [tableHeading, setTableHeading] = useState(false);
-  const [pageFaultParagraph, setPageFaultParagraph] = useState(false);
+  const [faultRateData, setFaultRateData] = useState([]);
 
-  //function to handle page refrence string taken as input
-  const HandlePageRefrences = (event) => {
-    const refrenceString = event.target.value //converting string to array
+  const handlePageReferences = (event) => {
+    const refString = event.target.value
       .split(" ")
-      .map((reference) => parseInt(reference.trim()))
-      .filter((reference) => !isNaN(reference));
-    SetpageRefrences(refrenceString);
+      .map((ref) => parseInt(ref.trim()))
+      .filter((ref) => !isNaN(ref));
+    setPageReferences(refString);
   };
-  //function to handle changes in number of frames
-  const HandleFrames = (event) => {
-    const Frames = parseInt(event.target.value);
-    SetFrames(Frames);
-    SetComponentMemoryState(Array(Frames).fill(null));
+
+  const handleFrames = (event) => {
+    const numFrames = parseInt(event.target.value);
+    setFrames(numFrames);
   };
-  //handling the simulate button
-  const HandleSimulate = () => {
+
+  const handleSimulate = () => {
     let newTableData = [];
-    let pageFaults = 0;
-    let componetMemoryState = Array(Frames).fill(null);
+    let memory = Array(frames).fill(null);
+    let faults = 0;
+    let faultRateTimeline = [];
 
-    //looping page refrence array
-    for (let i = 0; i < pageRefrences.length; i++) {
-      const page = pageRefrences[i];
+    for (let i = 0; i < pageReferences.length; i++) {
+      const page = pageReferences[i];
 
-      if (!componetMemoryState.includes(page)) {
-        //page not in frame,page fault occurs
-
-        pageFaults++;
-
-        // if there is an empty frame,page added to frame,
-        if (componetMemoryState.includes(null)) {
-          const index = componetMemoryState.indexOf(null);
-          componetMemoryState[index] = page;
-        }
-        //if all frames occupied,page with maximum distance to next occurence is replaced
-        else {
-          let distances = componetMemoryState.map((Frame) => {
-            const remainingPages = pageRefrences.slice(i + 1); //a subarray of remaining pages
-            const nextIndex = remainingPages.indexOf(Frame);
+      if (!memory.includes(page)) {
+        faults++;
+        if (memory.includes(null)) {
+          const index = memory.indexOf(null);
+          memory[index] = page;
+        } else {
+          let distances = memory.map((framePage) => {
+            const remaining = pageReferences.slice(i + 1);
+            const nextIndex = remaining.indexOf(framePage);
             return nextIndex === -1 ? Infinity : nextIndex;
           });
-          const index = distances.indexOf(Math.max(...distances));
-          componetMemoryState[index] = page;
+          const replaceIndex = distances.indexOf(Math.max(...distances));
+          memory[replaceIndex] = page;
         }
       }
 
-      //Adding the page,page fault count and component memory state  to table data array
       newTableData.push({
-        page: page,
-        pageFault: pageFaults,
-        memory: [...componetMemoryState],
+        page,
+        pageFault: faults,
+        memory: [...memory],
+      });
+
+      faultRateTimeline.push({
+        step: i + 1,
+        faultRate: ((faults / (i + 1)) * 100).toFixed(2),
       });
     }
-    //updating state variables aftter simulation
-    setPageFaults(pageFaults);
-    SetComponentMemoryState(componetMemoryState);
+
+    setPageFaults(faults);
     setTableData(newTableData);
     setTableHeading(true);
-    setPageFaultParagraph(true);
+    setFaultRateData(faultRateTimeline);
   };
 
   return (
-    //displaying the page
     <>
-    <NavBar />
+      <NavBar />
       <div className="optimal-information-section">
         <main>
           <h1>Optimal Page Replacement Algorithm</h1>
           <p>
-            {" "}
-            Optimal page replacement algorithm replaces the page whose demand in
-            the future is least as compared to other pages from frames.
+            Optimal page replacement replaces the page whose next use is farthest in the future (or not used again).
           </p>
         </main>
+
         <div className="optimal-info">
           <h1>Algorithm</h1>
           <p>
             <code>
               <ul>
-                <h3>For every reference we do the following : </h3>
-
-                <li>
-                  If referred page is already present, increment hit count.
-                </li>
-                <li>
-                  If not present, find if a page that is never referenced in
-                  future.{" "}
-                </li>
-                <li>If such a page exists, replace this page with new page.</li>
-                <li>
-                  If no such page exists, find a page that is referenced
-                  farthest in future. Replace this with new page.{" "}
-                </li>
+                <h3>For every reference:</h3>
+                <li>If page is in memory, do nothing (hit).</li>
+                <li>If page not in memory:</li>
+                <ul>
+                  <li>If space exists, insert it.</li>
+                  <li>If full, replace the one used farthest in the future.</li>
+                </ul>
               </ul>
             </code>
           </p>
         </div>
-        <section></section>
       </div>
 
       <div className="simulation">
@@ -121,113 +111,140 @@ function OptPR() {
         </div>
         <div className="Frames">
           <label>
-            Number of Frames :
+            Number of Frames:
             <input
-              type="Number"
-              value={Frames}
-              defaultValue={1}
-              onChange={HandleFrames}
-            ></input>
+              type="number"
+              value={frames}
+              onChange={handleFrames}
+              min="1"
+            />
           </label>
         </div>
         <div className="PageRefrences">
           <label>
-            Reference String :
+            Reference String:
             <input
-              type="Text"
-              min="1"
-              defaultValue={1}
-              onChange={HandlePageRefrences}
-            ></input>
+              type="text"
+              onChange={handlePageReferences}
+              placeholder="e.g. 7 0 1 2 0 3 0 4"
+            />
           </label>
         </div>
         <div className="btn">
-          <button onClick={HandleSimulate}>Simulate</button>
+          <button onClick={handleSimulate}>Simulate</button>
         </div>
+
         <div className="table">
-          <div className="table">
-            {tableHeading && (
-              <table className="table" id="myTable">
-                <thead>
-                  <tr>
-                    <th>Page</th>
-                    {/* This code displays the frame numbers */}
-                    {pageRefrences.map(
-                      (
-                        num,
-                        index //to display page refrences in table
-                      ) => (
-                        <th key={index}> {num}</th> //key to identify each element in the list
-                      )
-                    )}
-                    {/* <th>Page Fault</th> */}
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* This code displays the page numbers and their corresponding frames */}
-                  {tableData[0].memory.map((frame, index) => (
-                    <tr key={index}>
-                      <td>Frame {index}</td>
-                      {tableData.map((row, rowIndex) => (
-                        <td
-                          key={rowIndex}
-                          className={
-                            row.pageFault > tableData[rowIndex - 1]?.pageFault // check if page fault increased
-                              ? "red"
-                              : "green"
-                          }
-                          style={
-                            rowIndex === 0 && row.pageFault === 1
-                              ? { backgroundColor: " rgb(183, 70, 70)" }
-                              : {}
-                          }
-                        >
-                          {row.memory[index]}
-                        </td> //add ternary here
-                      ))}
-                      {/* <td>{tableData[index].pageFaults}</td> */}
-                    </tr>
+          {tableHeading && (
+            <table className="table" id="myTable">
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  {pageReferences.map((num, index) => (
+                    <th key={index}>{num}</th>
                   ))}
-                </tbody>
-              </table>
-            )}
+                </tr>
+              </thead>
+              <tbody>
+                {tableData[0].memory.map((frame, index) => (
+                  <tr key={index}>
+                    <td>Frame {index}</td>
+                    {tableData.map((row, rowIndex) => (
+                      <td
+                        key={rowIndex}
+                        className={
+                          row.pageFault > tableData[rowIndex - 1]?.pageFault
+                            ? "red"
+                            : "green"
+                        }
+                        style={
+                          rowIndex === 0 && row.pageFault === 1
+                            ? { backgroundColor: "rgb(183, 70, 70)" }
+                            : {}
+                        }
+                      >
+                        {row.memory[index]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
-            <br></br>
-            {/* diplaying final results */}
-            <div className="totalRef">
-              <h3>
-                The total number of refrences are: {pageRefrences.length}{" "}
-              </h3>
-            </div>
-            <br></br>
-
-            <div className="misses">
-              <h3>The number of misses are: {pageFaults} </h3>
-            </div>
-            <br></br>
-            <div className="hits">
-              <h3>
-                The number of hits are: {pageRefrences.length - pageFaults}
-              </h3>
-            </div>
-            <br></br>
-
-            <div className="hitRate">
-              <h3>
-                The Hit Rate is :{" "}
-                {((pageRefrences.length - pageFaults) * 100) /
-                  pageRefrences.length}{" "}
-                %
-              </h3>
-            </div>
-            <br></br>
-            <div className="missrate">
-              <h3>
-                The Miss Rate is : {(pageFaults * 100) / pageRefrences.length} %{" "}
-              </h3>
-            </div>
+          <br />
+          <div className="totalRef">
+            <h3>Total References: {pageReferences.length}</h3>
+          </div>
+          <br />
+          <div className="misses">
+            <h3>Misses (Page Faults): {pageFaults}</h3>
+          </div>
+          <br />
+          <div className="hits">
+            <h3>Hits: {pageReferences.length - pageFaults}</h3>
+          </div>
+          <br />
+          <div className="hitRate">
+            <h3>
+              Hit Rate:{" "}
+              {(
+                ((pageReferences.length - pageFaults) * 100) /
+                pageReferences.length
+              ).toFixed(2)}{" "}
+              %
+            </h3>
+          </div>
+          <br />
+          <div className="missRate">
+            <h3>
+              Miss Rate: {(pageFaults * 100 / pageReferences.length).toFixed(2)} %
+            </h3>
           </div>
         </div>
+
+        {/* Fault Rate Graph */}
+        {faultRateData.length > 0 && (
+          <>
+            <h2>Page Fault Rate Over Time (%)</h2>
+            <div style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <LineChart
+                  data={faultRateData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="step"
+                    label={{
+                      value: "Reference Step",
+                      position: "insideBottom",
+                      offset: -5,
+                    }}
+                    allowDecimals={false}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Fault Rate (%)",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                    domain={[0, 100]}
+                  />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="faultRate"
+                    stroke="#8884d8"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

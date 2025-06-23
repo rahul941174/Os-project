@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import "../Css/Scheduler.css";
 import NavBar from "../components/NavBar.jsx";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const RoundRobin = () => {
   const [processes, setProcesses] = useState([]);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState({ gantt: [], resultsArr: [] });
   const [input, setInput] = useState({ id: "", arrival: "", burst: "" });
   const [quantum, setQuantum] = useState(2);
 
@@ -94,8 +95,7 @@ const RoundRobin = () => {
       }
     });
 
-    const resultsArr = [...resultMap.values()].sort((a, b) => a.arrival - b.arrival);
-
+    const resultsArr = [...resultMap.values()];
     setResults({ gantt, resultsArr });
   };
 
@@ -147,6 +147,7 @@ const RoundRobin = () => {
             onChange={(e) => setQuantum(parseInt(e.target.value))}
             placeholder="Time Quantum"
             type="number"
+            min={1}
           />
           <button onClick={addProcess}>Add Process</button>
         </div>
@@ -179,7 +180,7 @@ const RoundRobin = () => {
           Simulate
         </button>
 
-        {results.resultsArr && results.resultsArr.length > 0 && (
+        {results.resultsArr.length > 0 && (
           <>
             <h2>Execution Timeline (Gantt Chart)</h2>
             <div className="timeline">
@@ -218,6 +219,27 @@ const RoundRobin = () => {
                 ))}
               </tbody>
             </table>
+
+            <h3>Performance Comparison</h3>
+            <div className="chart-container" style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={[...results.resultsArr].sort((a, b) => a.id.localeCompare(b.id))}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis dataKey="id" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="burst" fill="#ff4d4d" name="Burst Time" />
+                  <Bar dataKey="waiting" fill="#8884d8" name="Waiting Time" />
+                  <Bar dataKey="turnaround" fill="#82ca9d" name="Turnaround Time" />
+                </BarChart>
+              </ResponsiveContainer>
+              <p style={{ textAlign: "center", marginTop: "8px", fontStyle: "italic" }}>
+                Sorted by Process ID
+              </p>
+            </div>
           </>
         )}
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../Css/Scheduler.css";
 import NavBar from "../components/NavBar.jsx";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const Sjf = () => {
   const [processes, setProcesses] = useState([]);
@@ -13,16 +14,18 @@ const Sjf = () => {
 
   const addProcess = () => {
     if (!input.id || input.arrival === "" || input.burst === "") return;
-    setProcesses([...processes, {
-      id: input.id,
-      arrival: parseInt(input.arrival),
-      burst: parseInt(input.burst),
-    }]);
+    setProcesses([
+      ...processes,
+      {
+        id: input.id,
+        arrival: parseInt(input.arrival),
+        burst: parseInt(input.burst),
+      },
+    ]);
     setInput({ id: "", arrival: "", burst: "" });
   };
 
   const simulate = () => {
-    // Copy and sort processes by arrival time
     let procList = [...processes].map(p => ({ ...p }));
     procList.sort((a, b) => a.arrival - b.arrival);
 
@@ -33,7 +36,6 @@ const Sjf = () => {
     const res = [];
 
     while (completed < n) {
-      // Find the process with shortest burst time among arrived & not completed
       let idx = -1;
       let minBurst = Infinity;
       for (let i = 0; i < n; i++) {
@@ -44,8 +46,11 @@ const Sjf = () => {
       }
 
       if (idx === -1) {
-        // If no process has arrived yet, move time forward
-        time = procList.reduce((minArrival, p) => (p.arrival > time && p.arrival < minArrival ? p.arrival : minArrival), Infinity);
+        const currentTime = time;
+        time = procList.reduce((minArrival, p) =>
+          (p.arrival > currentTime && p.arrival < minArrival ? p.arrival : minArrival),
+          Infinity
+        );
         continue;
       }
 
@@ -53,6 +58,7 @@ const Sjf = () => {
       const finish = start + procList[idx].burst;
       const turnaround = finish - procList[idx].arrival;
       const waiting = turnaround - procList[idx].burst;
+      const response = start - procList[idx].arrival;
 
       res.push({
         ...procList[idx],
@@ -60,6 +66,7 @@ const Sjf = () => {
         finish,
         turnaround,
         waiting,
+        response,
       });
 
       time = finish;
@@ -88,6 +95,7 @@ const Sjf = () => {
             <li>Non-preemptive: running process cannot be interrupted.</li>
             <li>Waiting Time = Start Time - Arrival Time</li>
             <li>Turnaround Time = Completion Time - Arrival Time</li>
+            <li>Response Time = Start Time - Arrival Time</li>
           </ul>
         </div>
 
@@ -149,6 +157,7 @@ const Sjf = () => {
                   <th>Finish</th>
                   <th>Waiting</th>
                   <th>Turnaround</th>
+                  <th>Response</th>
                 </tr>
               </thead>
               <tbody>
@@ -161,10 +170,33 @@ const Sjf = () => {
                     <td>{p.finish}</td>
                     <td>{p.waiting}</td>
                     <td>{p.turnaround}</td>
+                    <td>{p.response}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            <h3>Performance Comparison</h3>
+            <div className="chart-container" style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={[...results].sort((a, b) => a.burst - b.burst)}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis dataKey="id" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                 <Bar dataKey="burst" fill="#ff4d4d" name="Burst Time" />
+                  <Bar dataKey="waiting" fill="#8884d8" name="Waiting Time" />
+                  <Bar dataKey="turnaround" fill="#82ca9d" name="Turnaround Time" />
+                  <Bar dataKey="response" fill="#ffc658" name="Response Time" />
+                </BarChart>
+              </ResponsiveContainer>
+               <p style={{ textAlign: "center", marginTop: "8px", fontStyle: "italic" }}>
+                  Sorted by Burst Time
+                </p>
+            </div>
           </>
         )}
       </div>
